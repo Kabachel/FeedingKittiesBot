@@ -1,12 +1,14 @@
 package com.service;
 
 import com.config.BotConfig;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+@Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
 
@@ -34,13 +36,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (update.hasMessage() && update.getMessage().hasText()) { // Убедились, что нам что-то прислали, и там есть текст
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
-
             switch (messageText) {
                 case "/start":
                     startCommandReceived(chatId, firstName);
                     break;
                 default:
-                    notRecognizeCommand(chatId);
+                    notRecognizeCommand(chatId, messageText,firstName);
             }
         }
 
@@ -48,12 +49,14 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void startCommandReceived(long chatId, String name) {
         String answer = "Hello " + name + ", glad to see you!\nTime to feed the cats.";
+        log.info("/start entered [{}]", name);
 
         sendMessage(chatId, answer);
     }
 
-    private void notRecognizeCommand(long chatId) {
+    private void notRecognizeCommand(long chatId, String userInput, String name) {
         String answer = "Sorry, this command unrecognized for me.";
+        log.info("Unrecognized command entered ({}) [{}]", userInput, name);
 
         sendMessage(chatId, answer);
     }
@@ -66,7 +69,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException exception) {
-            exception.getStackTrace();
+            log.error("Error occurred: " + exception.getMessage());
         }
     }
 }
