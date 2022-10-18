@@ -20,12 +20,21 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
 
+    static final String HELP_TEXT = "This bot is created for feeding kitties.\n\n" +
+            "You can execute commands from main menu on the left, or by start typing a command:\n\n" +
+            "/start - to see a welcome message\n" +
+            "/mydata - to see data stored about yourself\n" +
+            "/delete - to delete all stored data about yourself\n" +
+            "/settings - to change or set some personal preferences\n" +
+            "/help - to see this message again";
+
     public TelegramBot(BotConfig config) {
         this.config = config;
         List<BotCommand> listOfCommands = new ArrayList<>();
         listOfCommands.add(new BotCommand("/start", "get a welcome message"));
         listOfCommands.add(new BotCommand("/mydata", "get your data stored"));
         listOfCommands.add(new BotCommand("/deletedata", "delete my data"));
+        listOfCommands.add(new BotCommand("/help", "info how to use this bot"));
         listOfCommands.add(new BotCommand("/settings", "set your preferences"));
 
         try {
@@ -57,6 +66,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                 case "/start":
                     startCommandReceived(chatId, firstName);
                     break;
+                case "/help":
+                    helpMessage(chatId, firstName);
+                    break;
                 default:
                     notRecognizeCommand(chatId, messageText,firstName);
             }
@@ -76,6 +88,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         log.info("Unrecognized command entered ({}) [{}]", userInput, name);
 
         sendMessage(chatId, answer);
+    }
+
+    private void helpMessage(long chatId, String name) {
+        log.info("/help entered [{}]", name);
+
+        sendMessage(chatId, HELP_TEXT);
     }
 
     private void sendMessage(long chatId, String textToSend) {
