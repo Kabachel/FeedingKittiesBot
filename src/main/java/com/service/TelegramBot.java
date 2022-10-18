@@ -24,6 +24,9 @@ public class TelegramBot extends TelegramLongPollingBot {
         this.config = config;
         List<BotCommand> listOfCommands = new ArrayList<>();
         listOfCommands.add(new BotCommand("/start", "get a welcome message"));
+        listOfCommands.add(new BotCommand("/mydata", "get your data stored"));
+        listOfCommands.add(new BotCommand("/deletedata", "delete my data"));
+        listOfCommands.add(new BotCommand("/settings", "set your preferences"));
 
         try {
             this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));    // Меню бота
