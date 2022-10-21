@@ -1,22 +1,30 @@
 package com.service;
 
 import com.config.BotConfig;
+import com.model.User;
+import com.model.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot {
+
+    @Autowired
+    private UserRepository userRepository;
 
     private final BotConfig config;
 
@@ -58,12 +66,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     public void onUpdateReceived(Update update) { // Что должен делать бот, когда ему кто-то пишет. Update - класс который содержит сообщение, которое пользователь посылает боту, и еще некоторую информуцию о самом пользователе.
 
         String firstName = update.getMessage().getChat().getFirstName();
+        Message message = update.getMessage();
 
         if (update.hasMessage() && update.getMessage().hasText()) { // Убедились, что нам что-то прислали, и там есть текст
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             switch (messageText) {
                 case "/start":
+                    registerUser(message);
                     startCommandReceived(chatId, firstName);
                     break;
                 case "/help":
@@ -74,6 +84,26 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         }
 
+    }
+
+    private void registerUser(Message message) {
+
+        if(userRepository.findById(message.getChatId()).isEmpty()) {
+            var chatId = message.getChatId();
+            var chat = message.getChat();
+
+            User user = new User();
+
+            user.setChatId(chatId);
+            user.setFirstName(chat.getFirstName());
+            user.setLastName(chat.getLastName());
+            user.setUserName(chat.getUserName());
+            user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
+
+            userRepository.save(user);
+
+            log.info("User saved " + user);
+        }
     }
 
     private void startCommandReceived(long chatId, String name) {
