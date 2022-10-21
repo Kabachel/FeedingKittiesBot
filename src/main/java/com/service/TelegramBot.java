@@ -33,7 +33,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             "You can execute commands from main menu on the left, or by start typing a command:\n\n" +
             "/start - to see a welcome message\n" +
             "/mydata - to see data stored about yourself\n" +
-            "/delete - to delete all stored data about yourself\n" +
+            "/deletedata - to delete all stored data about yourself\n" +
             "/settings - to change or set some personal preferences\n" +
             "/help - to see this message again";
 
@@ -47,7 +47,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         listOfCommands.add(new BotCommand("/help", "info how to use this bot"));
 
         try {
-            this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));    // Меню бота
+            this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null)); // Bot menu
         } catch (TelegramApiException exception) {
             log.error("Error setting bot's command list: " + exception.getMessage());
         }
@@ -55,21 +55,22 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return config.getBotName(); // Эти геттеры появились автоматически с помощью библиотеки lombok и аннотации @Data
+        return config.getBotName();
     }
 
     @Override
-    public String getBotToken() {   // Получить API key
+    public String getBotToken() {
         return config.getToken();
     }
 
     @Override
-    public void onUpdateReceived(Update update) { // Что должен делать бот, когда ему кто-то пишет. Update - класс который содержит сообщение, которое пользователь посылает боту, и еще некоторую информуцию о самом пользователе.
+    public void onUpdateReceived(Update update) {
 
         String firstName = update.getMessage().getChat().getFirstName();
         Message message = update.getMessage();
+        User user;
 
-        if (update.hasMessage() && update.getMessage().hasText()) { // Убедились, что нам что-то прислали, и там есть текст
+        if (update.hasMessage() && update.getMessage().hasText()) {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             switch (messageText) {
@@ -78,8 +79,13 @@ public class TelegramBot extends TelegramLongPollingBot {
                     showHelloMessage(chatId, firstName);
                     break;
                 case "/mydata":
-                    User user = getUserData(message);
+                    user = getUserData(message);
                     showUserData(chatId, firstName, user);
+                    break;
+                case "/deletedata":
+                    user = getUserData(message);
+                    deleteUserData(user, message);
+                    showDeleteUserData(chatId, firstName, user);
                     break;
                 case "/help":
                     showHelpMessage(chatId, firstName);
@@ -133,7 +139,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             return userRepository.findById(message.getChatId()).get();
         }
 
-        log.info("user not register [{}]", message.getChat().getFirstName());
+        log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
         return null;
     }
 
@@ -154,6 +160,30 @@ public class TelegramBot extends TelegramLongPollingBot {
                     "Enter /start to register.";
 
         }
+        sendMessage(chatId, answer);
+    }
+
+    private void deleteUserData(User user, Message message) {
+
+        if (user != null) {
+            userRepository.deleteById(message.getChatId());
+        } else {
+            log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
+        }
+    }
+
+    private void showDeleteUserData(long chatId, String name, User user) {
+
+        String answer;
+
+        if (user != null) {
+            answer = "Your data is cleared!";
+            log.info("clear data [{}]", name);
+        } else {
+            answer = "Dude, you're not registered!\n" +
+                    "Enter /start to register.";
+        }
+
         sendMessage(chatId, answer);
     }
 
