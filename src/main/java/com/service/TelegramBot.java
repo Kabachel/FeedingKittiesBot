@@ -43,8 +43,8 @@ public class TelegramBot extends TelegramLongPollingBot {
         listOfCommands.add(new BotCommand("/start", "get a welcome message"));
         listOfCommands.add(new BotCommand("/mydata", "get your data stored"));
         listOfCommands.add(new BotCommand("/deletedata", "delete my data"));
-        listOfCommands.add(new BotCommand("/help", "info how to use this bot"));
         listOfCommands.add(new BotCommand("/settings", "set your preferences"));
+        listOfCommands.add(new BotCommand("/help", "info how to use this bot"));
 
         try {
             this.execute(new SetMyCommands(listOfCommands, new BotCommandScopeDefault(), null));    // Меню бота
@@ -75,13 +75,17 @@ public class TelegramBot extends TelegramLongPollingBot {
             switch (messageText) {
                 case "/start":
                     registerUser(message);
-                    startCommandReceived(chatId, firstName);
+                    showHelloMessage(chatId, firstName);
+                    break;
+                case "/mydata":
+                    User user = getUserData(message);
+                    showUserData(chatId, firstName, user);
                     break;
                 case "/help":
-                    helpMessage(chatId, firstName);
+                    showHelpMessage(chatId, firstName);
                     break;
                 default:
-                    notRecognizeCommand(chatId, messageText,firstName);
+                    notRecognizeCommand(chatId, messageText, firstName);
             }
         }
 
@@ -89,7 +93,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void registerUser(Message message) {
 
-        if(userRepository.findById(message.getChatId()).isEmpty()) {
+        if (userRepository.findById(message.getChatId()).isEmpty()) {
             var chatId = message.getChatId();
             var chat = message.getChat();
 
@@ -107,10 +111,10 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-    private void startCommandReceived(long chatId, String name) {
-//        String answer = "Hello " + name + ", glad to see you!\nTime to feed the cats.";
-        String answer = EmojiParser.parseToUnicode("Hello " + name + ", glad to see you!" + ":wave:" +
-                "\nTime to feed the cats." + ":cat2:");
+    private void showHelloMessage(long chatId, String name) {
+
+        String answer = EmojiParser.parseToUnicode("Hello " + name + ", glad to see you!" + ":wave:\n" +
+                "Time to feed the cats." + ":cat2:");
         log.info("/start entered [{}]", name);
 
         sendMessage(chatId, answer);
@@ -123,7 +127,37 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMessage(chatId, answer);
     }
 
-    private void helpMessage(long chatId, String name) {
+    private User getUserData(Message message) {
+
+        if (!userRepository.findById(message.getChatId()).isEmpty()) {
+            return userRepository.findById(message.getChatId()).get();
+        }
+
+        log.info("user not register [{}]", message.getChat().getFirstName());
+        return null;
+    }
+
+    private void showUserData(long chatId, String name, User user) {
+
+        String answer;
+
+        if (user != null) {
+            answer = "Your data:\n" +
+                    "First name: " + user.getFirstName() + "\n" +
+                    "Last name: " + user.getLastName() + "\n" +
+                    "Registration time: " + user.getRegisteredAt().toString();
+
+            log.info("show user data by: " + user);
+
+        } else {
+            answer = "Dude, you're not registered!\n" +
+                    "Enter /start to register.";
+
+        }
+        sendMessage(chatId, answer);
+    }
+
+    private void showHelpMessage(long chatId, String name) {
         log.info("/help entered [{}]", name);
 
         sendMessage(chatId, HELP_TEXT);
