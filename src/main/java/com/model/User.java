@@ -1,5 +1,8 @@
 package com.model;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.List;
@@ -18,7 +21,7 @@ public class User {
 
     private Timestamp registeredAt;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private List<Cat> catList;
 
     public Long getChatId() {

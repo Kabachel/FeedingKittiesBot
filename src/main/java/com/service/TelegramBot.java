@@ -95,7 +95,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case "/newcat":
                     registerCat(message, user);
-//                    showNewCat(chatId, firstName, user);
+                    showNewCat(chatId, firstName, user);
                     break;
                 case "/help":
                     showHelpMessage(chatId, firstName);
@@ -140,6 +140,13 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             catRepository.save(cat);
         }
+    }
+
+    private void showNewCat(long chatId, String firstName, User user) {
+
+        String answer = "Kitty is created!";
+
+        sendMessage(chatId, answer);
     }
 
     private void showHelloMessage(long chatId, String name) {
@@ -191,6 +198,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void deleteUserData(User user, Message message) {
 
         if (user != null) {
+
             userRepository.deleteById(message.getChatId());
         } else {
             log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
