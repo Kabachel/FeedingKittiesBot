@@ -2,8 +2,9 @@ package com.model;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.List;
 
-@Entity(name = "usersDataTable")
+@Entity(name = "users")
 public class User {
 
     @Id
@@ -16,6 +17,9 @@ public class User {
     private String userName;
 
     private Timestamp registeredAt;
+
+    @OneToMany(mappedBy = "user")
+    private List<Cat> catList;
 
     public Long getChatId() {
         return chatId;
@@ -55,6 +59,14 @@ public class User {
 
     public void setRegisteredAt(Timestamp registeredAt) {
         this.registeredAt = registeredAt;
+    }
+
+    public List<Cat> getCatList() {
+        return catList;
+    }
+
+    public void setCatList(List<Cat> catList) {
+        this.catList = catList;
     }
 
     @Override

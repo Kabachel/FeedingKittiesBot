@@ -1,6 +1,8 @@
 package com.service;
 
 import com.config.BotConfig;
+import com.model.Cat;
+import com.model.CatRepository;
 import com.model.User;
 import com.model.UserRepository;
 import com.vdurmont.emoji.EmojiParser;
@@ -27,6 +29,9 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private CatRepository catRepository;
+
     private final BotConfig config;
 
     static final String HELP_TEXT = "This bot is created for feeding kitties.\n\n" +
@@ -34,6 +39,7 @@ public class TelegramBot extends TelegramLongPollingBot {
             "/start - to see a welcome message\n" +
             "/mydata - to see data stored about yourself\n" +
             "/deletedata - to delete all stored data about yourself\n" +
+            "/newcat - to create new kitty\n" +
             "/settings - to change or set some personal preferences\n" +
             "/help - to see this message again";
 
@@ -43,6 +49,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         listOfCommands.add(new BotCommand("/start", "get a welcome message"));
         listOfCommands.add(new BotCommand("/mydata", "get your data stored"));
         listOfCommands.add(new BotCommand("/deletedata", "delete my data"));
+        listOfCommands.add(new BotCommand("/newcat", "to create new kitty"));
         listOfCommands.add(new BotCommand("/settings", "set your preferences"));
         listOfCommands.add(new BotCommand("/help", "info how to use this bot"));
 
@@ -71,6 +78,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         User user;
 
         if (update.hasMessage() && update.getMessage().hasText()) {
+            user = getUserData(message);
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
             switch (messageText) {
@@ -79,13 +87,15 @@ public class TelegramBot extends TelegramLongPollingBot {
                     showHelloMessage(chatId, firstName);
                     break;
                 case "/mydata":
-                    user = getUserData(message);
                     showUserData(chatId, firstName, user);
                     break;
                 case "/deletedata":
-                    user = getUserData(message);
                     deleteUserData(user, message);
                     showDeleteUserData(chatId, firstName, user);
+                    break;
+                case "/newcat":
+                    registerCat(message, user);
+//                    showNewCat(chatId, firstName, user);
                     break;
                 case "/help":
                     showHelpMessage(chatId, firstName);
@@ -114,6 +124,21 @@ public class TelegramBot extends TelegramLongPollingBot {
             userRepository.save(user);
 
             log.info("User saved " + user);
+        }
+    }
+
+    private void registerCat(Message message, User user) {
+
+        if (user != null) {
+
+            Cat cat = new Cat();
+
+            cat.setName("Burzum");
+            cat.setGramsPerDay(50);
+            cat.setFeedPerDay(3);
+            cat.setUser(user);
+
+            catRepository.save(cat);
         }
     }
 
