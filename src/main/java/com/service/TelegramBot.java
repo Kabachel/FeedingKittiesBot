@@ -34,7 +34,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private final BotConfig config;
 
-    static final String HELP_TEXT = "This bot is created for feeding kitties.\n\n" +
+    private static final String HELP_TEXT = "This bot is created for feeding kitties.\n\n" +
             "You can execute commands from main menu on the left, or by start typing a command:\n\n" +
             "/start - to see a welcome message\n" +
             "/mydata - to see data stored about yourself\n" +
@@ -73,14 +73,14 @@ public class TelegramBot extends TelegramLongPollingBot {
     @Override
     public void onUpdateReceived(Update update) {
 
-        String firstName = update.getMessage().getChat().getFirstName();
-        Message message = update.getMessage();
-        User user;
-
         if (update.hasMessage() && update.getMessage().hasText()) {
-            user = getUserData(message);
+
+            String firstName = update.getMessage().getChat().getFirstName();
+            Message message = update.getMessage();
+            User user = getUserData(message);
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
+
             switch (messageText) {
                 case "/start":
                     registerUser(message);
@@ -180,10 +180,21 @@ public class TelegramBot extends TelegramLongPollingBot {
         String answer;
 
         if (user != null) {
+
+            List<Cat> catList = catRepository.findByUserChatId(chatId);
+
             answer = "Your data:\n" +
                     "First name: " + user.getFirstName() + "\n" +
                     "Last name: " + user.getLastName() + "\n" +
-                    "Registration time: " + user.getRegisteredAt().toString();
+                    "Registration time: " + user.getRegisteredAt().toString() + "\n";
+
+            answer += "Kitties:\n";
+
+            for (Cat cat : catList) {
+                answer += "Name: " + cat.getName() + "; Grams per day: " + cat.getGramsPerDay() +
+                        "; Feed per day: " + cat.getFeedPerDay() + "\n";
+            }
+
 
             log.info("show user data by: " + user);
 
