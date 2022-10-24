@@ -130,23 +130,24 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void registerCat(Message message, User user) {
 
         if (user != null) {
-
             Cat cat = new Cat();
-
             cat.setName("Burzum");
             cat.setGramsPerDay(50);
-            cat.setFeedPerDay(3);
             cat.setUser(user);
+            cat.setFeedPerDay(5);
 
             catRepository.save(cat);
         }
+
     }
 
     private void showNewCat(long chatId, String firstName, User user) {
 
-        String answer = "Kitty is created!";
+        if (user != null) {
+            String answer = "Kitty is created!";
 
-        sendMessage(chatId, answer);
+            sendMessage(chatId, answer);
+        }
     }
 
     private void showHelloMessage(long chatId, String name) {
@@ -186,13 +187,15 @@ public class TelegramBot extends TelegramLongPollingBot {
             answer = "Your data:\n" +
                     "First name: " + user.getFirstName() + "\n" +
                     "Last name: " + user.getLastName() + "\n" +
-                    "Registration time: " + user.getRegisteredAt().toString() + "\n";
+                    "Registration time: " + user.getRegisteredAt().toString();
 
-            answer += "Kitties:\n";
+            if (!catList.isEmpty()) {
+                answer += "\nKitties:\n";
 
-            for (Cat cat : catList) {
-                answer += "Name: " + cat.getName() + "; Grams per day: " + cat.getGramsPerDay() +
-                        "; Feed per day: " + cat.getFeedPerDay() + "\n";
+                for (Cat cat : catList) {
+                    answer += "Name: " + cat.getName() + "; Grams per day: " + cat.getGramsPerDay() +
+                            "; Feed per day: " + cat.getFeedPerDay() + "\n";
+                }
             }
 
 
@@ -209,7 +212,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void deleteUserData(User user, Message message) {
 
         if (user != null) {
-
             userRepository.deleteById(message.getChatId());
         } else {
             log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
