@@ -12,15 +12,21 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.Math.toIntExact;
 
 @Slf4j
 @Component
@@ -42,6 +48,10 @@ public class TelegramBot extends TelegramLongPollingBot {
             "/newcat - to create new kitty\n" +
             "/settings - to change or set some personal preferences\n" +
             "/help - to see this message again";
+
+    private static final String YES_BUTTON = "YES_BUTTON";
+
+    private static final String NO_BUTTON = "NO_BUTTON";
 
     public TelegramBot(BotConfig config) {
         this.config = config;
@@ -97,14 +107,86 @@ public class TelegramBot extends TelegramLongPollingBot {
                     registerCat(message, user);
                     showNewCat(chatId, firstName, user);
                     break;
+                case "/register":
+                    register(chatId);
+                    break;
                 case "/help":
                     showHelpMessage(chatId, firstName);
                     break;
                 default:
                     notRecognizeCommand(chatId, messageText, firstName);
             }
+        } else if (update.hasCallbackQuery()) {
+
+            CallbackQuery callbackQuery = update.getCallbackQuery();
+
+            String callbackData = callbackQuery.getData();
+            long messageId = callbackQuery.getMessage().getMessageId();
+            long chatId = callbackQuery.getMessage().getChatId();
+
+            if (callbackData.equals(YES_BUTTON)) {
+                String text = "You pressed YES button.";
+                EditMessageText messageText = new EditMessageText();
+                messageText.setChatId(chatId);
+                messageText.setText(text);
+                messageText.setMessageId(toIntExact(messageId));
+
+                try {
+                    execute(messageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: " + e.getMessage());
+                }
+
+
+            } else if (callbackData.equals(NO_BUTTON)) {
+                String text = "You pressed NO button.";
+                EditMessageText messageText = new EditMessageText();
+                messageText.setChatId(chatId);
+                messageText.setText(text);
+                messageText.setMessageId((int) messageId);
+
+                try {
+                    execute(messageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: " + e.getMessage());
+                }
+            }
         }
 
+    }
+
+    private void register(long chatId) {
+
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("Do you really want to register?");
+
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> rowInline = new ArrayList<>();
+        var yesButton = new InlineKeyboardButton();
+
+        yesButton.setText("Yes");
+        yesButton.setCallbackData(YES_BUTTON);
+
+        var noButton = new InlineKeyboardButton();
+
+        noButton.setText("No");
+        noButton.setCallbackData(NO_BUTTON);
+
+        rowInline.add(yesButton);
+        rowInline.add(noButton);
+
+        rowsInline.add(rowInline);
+
+        markupInline.setKeyboard(rowsInline);
+        message.setReplyMarkup(markupInline);
+
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            log.error("Error occurred: " + e.getMessage());
+        }
     }
 
     private void registerUser(Message message) {

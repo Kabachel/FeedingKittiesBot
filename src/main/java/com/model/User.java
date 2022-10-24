@@ -1,10 +1,8 @@
 package com.model;
 
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
-
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity(name = "users")
@@ -22,7 +20,9 @@ public class User {
     private Timestamp registeredAt;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
-    private List<Cat> catList;
+    private List<Cat> catList = new ArrayList<>();
+
+    private String current;
 
     public Long getChatId() {
         return chatId;
@@ -70,6 +70,14 @@ public class User {
 
     public void setCatList(List<Cat> catList) {
         this.catList = catList;
+    }
+
+    public String getCurrent() {
+        return current;
+    }
+
+    public void setCurrent(String current) {
+        this.current = current;
     }
 
     @Override
