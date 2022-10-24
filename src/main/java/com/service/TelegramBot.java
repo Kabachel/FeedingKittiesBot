@@ -53,6 +53,10 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private static final String NO_BUTTON = "NO_BUTTON";
 
+    private static final String YES_BUTTON_DELETE = "YES_BUTTON_DELETE";
+
+    private static final String NO_BUTTON_DELETE = "NO_BUTTON_DELETE";
+
     public TelegramBot(BotConfig config) {
         this.config = config;
         List<BotCommand> listOfCommands = new ArrayList<>();
@@ -101,6 +105,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (current != null) {
                 registerCat(message, user);
+                showNewCat(chatId, firstName, user);
             } else {
 
                 switch (messageText) {
@@ -113,7 +118,6 @@ public class TelegramBot extends TelegramLongPollingBot {
                         break;
                     case "/deletedata":
                         deleteUserData(user, message);
-                        showDeleteUserData(chatId, firstName, user);
                         break;
                     case "/newcat":
                         registerCat(message, user);
@@ -156,6 +160,38 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             } else if (callbackData.equals(NO_BUTTON)) {
                 String text = "You pressed NO button.";
+                EditMessageText messageText = new EditMessageText();
+                messageText.setChatId(chatId);
+                messageText.setText(text);
+                messageText.setMessageId((int) messageId);
+
+                try {
+                    execute(messageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: " + e.getMessage());
+                }
+            } else if (callbackData.equals(YES_BUTTON_DELETE)) {
+                List<Cat> catList = catRepository.findByUserChatId(chatId);
+
+                catRepository.deleteAll(catList);
+                userRepository.deleteById(chatId);
+
+                String text = "Your data is cleared";
+
+                EditMessageText messageText = new EditMessageText();
+                messageText.setChatId(chatId);
+                messageText.setText(text);
+                messageText.setMessageId((int) messageId);
+
+                try {
+                    execute(messageText);
+                } catch (TelegramApiException e) {
+                    log.error("Error occurred: " + e.getMessage());
+                }
+            } else if (callbackData.equals(NO_BUTTON_DELETE)) {
+
+                String text = "Hooray! You stay with us!";
+
                 EditMessageText messageText = new EditMessageText();
                 messageText.setChatId(chatId);
                 messageText.setText(text);
@@ -240,13 +276,11 @@ public class TelegramBot extends TelegramLongPollingBot {
             if (currentState == null) {
                 answer = "Type your kitty name:";
                 user.setCurrent("/newcat1");
-                userRepository.deleteById(chatId);
                 userRepository.save(user);
             } else if (currentState.equals("/newcat1")) {
                 answer = "How many grams of food per day does a cat need?";
 
                 user.setCurrent("/newcat2");
-                userRepository.deleteById(chatId);
                 userRepository.save(user);
 
                 Cat cat = new Cat();
@@ -262,7 +296,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 Cat cat = catList.get(catList.size() - 1);
                 catRepository.delete(cat);
-                userRepository.deleteById(chatId);
                 cat.setGramsPerDay(Integer.parseInt(message.getText()));
 
                 userRepository.save(user);
@@ -276,7 +309,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 Cat cat = catList.get(catList.size() - 1);
                 catRepository.delete(cat);
-                userRepository.deleteById(chatId);
                 cat.setFeedPerDay(Integer.parseInt(message.getText()));
 
                 userRepository.save(user);
@@ -364,10 +396,37 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         if (user != null) {
 
-            List<Cat> catList = catRepository.findByUserChatId(message.getChatId());
+            SendMessage sendMessage = new SendMessage();
+            sendMessage.setChatId(message.getChatId());
+            sendMessage.setText("Do you really want to delete all data?");
 
-            catRepository.deleteAll(catList);
-            userRepository.deleteById(message.getChatId());
+            InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+            List<InlineKeyboardButton> rowInline = new ArrayList<>();
+            var yesButton = new InlineKeyboardButton();
+
+            yesButton.setText("Yes");
+            yesButton.setCallbackData(YES_BUTTON_DELETE);
+
+            var noButton = new InlineKeyboardButton();
+
+            noButton.setText("No");
+            noButton.setCallbackData(NO_BUTTON_DELETE);
+
+            rowInline.add(yesButton);
+            rowInline.add(noButton);
+
+            rowsInline.add(rowInline);
+
+            markupInline.setKeyboard(rowsInline);
+            sendMessage.setReplyMarkup(markupInline);
+
+            try {
+                execute(sendMessage);
+            } catch (TelegramApiException e) {
+                log.error("Error occurred: " + e.getMessage());
+            }
+
         } else {
             log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
         }
