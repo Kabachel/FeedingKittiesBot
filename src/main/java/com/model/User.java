@@ -19,7 +19,7 @@ public class User {
 
     private Timestamp registeredAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    @OneToMany(mappedBy = "user")
     private List<Cat> catList = new ArrayList<>();
 
     private String current;

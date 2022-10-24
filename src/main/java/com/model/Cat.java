@@ -61,7 +61,9 @@ public class Cat {
     @Override
     public String toString() {
         return "Cat{" +
-                "name='" + name + '\'' +
+                "catId=" + catId +
+                ", user=" + user +
+                ", name='" + name + '\'' +
                 ", gramsPerDay=" + gramsPerDay +
                 ", feedPerDay=" + feedPerDay +
                 '}';

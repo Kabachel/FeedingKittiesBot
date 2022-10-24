@@ -91,30 +91,46 @@ public class TelegramBot extends TelegramLongPollingBot {
             String messageText = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
 
-            switch (messageText) {
-                case "/start":
-                    registerUser(message);
-                    showHelloMessage(chatId, firstName);
-                    break;
-                case "/mydata":
-                    showUserData(chatId, firstName, user);
-                    break;
-                case "/deletedata":
-                    deleteUserData(user, message);
-                    showDeleteUserData(chatId, firstName, user);
-                    break;
-                case "/newcat":
-                    registerCat(message, user);
-                    showNewCat(chatId, firstName, user);
-                    break;
-                case "/register":
-                    register(chatId);
-                    break;
-                case "/help":
-                    showHelpMessage(chatId, firstName);
-                    break;
-                default:
-                    notRecognizeCommand(chatId, messageText, firstName);
+            boolean isUserAlive = user != null;
+            String current = null;
+
+
+            if (isUserAlive) {
+                current = user.getCurrent();
+            }
+
+            if (current != null) {
+                registerCat(message, user);
+            } else {
+
+                switch (messageText) {
+                    case "/start":
+                        registerUser(message);
+                        showHelloMessage(chatId, firstName);
+                        break;
+                    case "/mydata":
+                        showUserData(chatId, firstName, user);
+                        break;
+                    case "/deletedata":
+                        deleteUserData(user, message);
+                        showDeleteUserData(chatId, firstName, user);
+                        break;
+                    case "/newcat":
+                        registerCat(message, user);
+                        showNewCat(chatId, firstName, user);
+                        break;
+                    case "/register":
+                        register(chatId);
+                        break;
+                    case "/help":
+                        showHelpMessage(chatId, firstName);
+                        break;
+                    case "/debug":
+                        debug(message);
+                        break;
+                    default:
+                        notRecognizeCommand(chatId, messageText, firstName);
+                }
             }
         } else if (update.hasCallbackQuery()) {
 
@@ -152,6 +168,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             }
         }
+
+    }
+
+    private void debug(Message message) {
 
     }
 
@@ -212,24 +232,73 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void registerCat(Message message, User user) {
 
         if (user != null) {
-            Cat cat = new Cat();
-            cat.setName("Burzum");
-            cat.setGramsPerDay(50);
-            cat.setUser(user);
-            cat.setFeedPerDay(5);
 
-            catRepository.save(cat);
+            String currentState = userRepository.findById(message.getChatId()).get().getCurrent();
+            String answer = "";
+            Long chatId = message.getChatId();
+
+            if (currentState == null) {
+                answer = "Type your kitty name:";
+                user.setCurrent("/newcat1");
+                userRepository.deleteById(chatId);
+                userRepository.save(user);
+            } else if (currentState.equals("/newcat1")) {
+                answer = "How many grams of food per day does a cat need?";
+
+                user.setCurrent("/newcat2");
+                userRepository.deleteById(chatId);
+                userRepository.save(user);
+
+                Cat cat = new Cat();
+                cat.setUser(user);
+                cat.setName(message.getText());
+                catRepository.save(cat);
+            } else if (currentState.equals("/newcat2")) {
+                answer = "How many times a day do you want to feed them?";
+
+                user.setCurrent("/newcat3");
+
+                List<Cat> catList = catRepository.findByUserChatId(message.getChatId());
+
+                Cat cat = catList.get(catList.size() - 1);
+                catRepository.delete(cat);
+                userRepository.deleteById(chatId);
+                cat.setGramsPerDay(Integer.parseInt(message.getText()));
+
+                userRepository.save(user);
+                catRepository.save(cat);
+
+            } else if (currentState.equals("/newcat3")) {
+
+                user.setCurrent(null);
+
+                List<Cat> catList = catRepository.findByUserChatId(message.getChatId());
+
+                Cat cat = catList.get(catList.size() - 1);
+                catRepository.delete(cat);
+                userRepository.deleteById(chatId);
+                cat.setFeedPerDay(Integer.parseInt(message.getText()));
+
+                userRepository.save(user);
+                catRepository.save(cat);
+            }
+
+            sendMessage(chatId, answer);
         }
 
     }
 
     private void showNewCat(long chatId, String firstName, User user) {
 
-        if (user != null) {
-            String answer = "Kitty is created!";
+        String answer = "";
 
-            sendMessage(chatId, answer);
+        if (user == null) {
+            answer = "Dude, you're not registered!\n" +
+                    "Enter /start to register.";
+        } else if (userRepository.findById(chatId).get().getCurrent() == null) {
+            answer = "Kitty is created!";
         }
+        sendMessage(chatId, answer);
     }
 
     private void showHelloMessage(long chatId, String name) {
@@ -294,6 +363,10 @@ public class TelegramBot extends TelegramLongPollingBot {
     private void deleteUserData(User user, Message message) {
 
         if (user != null) {
+
+            List<Cat> catList = catRepository.findByUserChatId(message.getChatId());
+
+            catRepository.deleteAll(catList);
             userRepository.deleteById(message.getChatId());
         } else {
             log.info("user not registered [{}, {}]", message.getChat().getFirstName(), message.getChatId());
