@@ -24,6 +24,8 @@ public class User {
 
     private String current;
 
+    private Long catId;
+
     public Long getChatId() {
         return chatId;
     }
@@ -78,6 +80,14 @@ public class User {
 
     public void setCurrent(String current) {
         this.current = current;
+    }
+
+    public Long getCatId() {
+        return catId;
+    }
+
+    public void setCatId(Long catId) {
+        this.catId = catId;
     }
 
     @Override
