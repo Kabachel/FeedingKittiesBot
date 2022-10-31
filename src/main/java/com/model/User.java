@@ -24,7 +24,7 @@ public class User {
 
     private String current;
 
-    private Long catId;
+    private Long catId = (long) -1;
 
     public Long getChatId() {
         return chatId;

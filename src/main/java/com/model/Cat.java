@@ -18,6 +18,8 @@ public class Cat {
 
     private int feedPerDay;
 
+    private int currentFeed = 0;
+
     public Long getCatId() {
         return catId;
     }
@@ -56,6 +58,14 @@ public class Cat {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public int getCurrentFeed() {
+        return currentFeed;
+    }
+
+    public void setCurrentFeed(int currentFeed) {
+        this.currentFeed = currentFeed;
     }
 
     @Override
