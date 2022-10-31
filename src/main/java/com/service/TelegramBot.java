@@ -154,10 +154,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             if (callbackData.equals(YES_BUTTON)) {
                 String text = "You pressed YES button.";
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -166,10 +163,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
             } else if (callbackData.equals(NO_BUTTON)) {
                 String text = "You pressed NO button.";
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -185,10 +179,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 String text = "Your data is cleared";
 
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -199,10 +190,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 String text = "Hooray! You stay with us!";
 
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -271,10 +259,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                     text = "It's enough for the cat to eat today, come back tomorrow.";
                 }
 
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -293,10 +278,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 String text = "Your kitty deleted.";
 
-                EditMessageText messageText = new EditMessageText();
-                messageText.setChatId(chatId);
-                messageText.setText(text);
-                messageText.setMessageId((int) (messageId));
+                var messageText = callbackMessageAnswer(text, chatId, messageId);
 
                 try {
                     execute(messageText);
@@ -309,6 +291,15 @@ public class TelegramBot extends TelegramLongPollingBot {
             }
         }
 
+    }
+
+    private EditMessageText callbackMessageAnswer(String text, long chatId, long messageId) {
+        EditMessageText messageText = new EditMessageText();
+        messageText.setChatId(chatId);
+        messageText.setText(text);
+        messageText.setMessageId((int) (messageId));
+
+        return messageText;
     }
 
     private void chooseCatAction(User user, long chatId) {
