@@ -19,7 +19,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.commands.BotCommand;
 import org.telegram.telegrambots.meta.api.objects.commands.scope.BotCommandScopeDefault;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.sql.Timestamp;
@@ -655,10 +657,45 @@ public class TelegramBot extends TelegramLongPollingBot {
         sendMessage(chatId, HELP_TEXT);
     }
 
+    private ReplyKeyboardMarkup createKeyboardMarkup() {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+
+        List<KeyboardRow> keyboardRows = new ArrayList<>();
+
+        KeyboardRow keyboardButtons = new KeyboardRow();
+
+        keyboardButtons.add("/mydata");
+        keyboardButtons.add("/deletedata");
+
+        keyboardRows.add(keyboardButtons);
+
+        keyboardButtons = new KeyboardRow();
+
+        keyboardButtons.add("/newcat");
+        keyboardButtons.add("/choosecat");
+
+        keyboardRows.add(keyboardButtons);
+
+        keyboardButtons = new KeyboardRow();
+
+        keyboardButtons.add("/settings");
+        keyboardButtons.add("/help");
+
+        keyboardRows.add(keyboardButtons);
+
+        keyboardMarkup.setKeyboard(keyboardRows);
+
+        return keyboardMarkup;
+    }
+
     private void sendMessage(long chatId, String textToSend) {
         SendMessage message = new SendMessage();
         message.setChatId(chatId);
         message.setText(textToSend);
+
+        var keyboardMarkup = createKeyboardMarkup();
+
+        message.setReplyMarkup(keyboardMarkup);
 
         try {
             execute(message);
