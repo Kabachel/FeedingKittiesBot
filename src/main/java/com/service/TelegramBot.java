@@ -1,13 +1,11 @@
 package com.service;
 
 import com.config.BotConfig;
-import com.model.Cat;
-import com.model.CatRepository;
-import com.model.User;
-import com.model.UserRepository;
+import com.model.*;
 import com.vdurmont.emoji.EmojiParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -34,7 +32,6 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private CatRepository catRepository;
 
@@ -480,8 +477,8 @@ public class TelegramBot extends TelegramLongPollingBot {
 
     private void showHelloMessage(long chatId, String name) {
 
-        String answer = EmojiParser.parseToUnicode("Hello " + name + ", glad to see you!" + ":wave:\n" +
-                "Time to feed the cats." + ":cat2:");
+        String answer = EmojiParser.parseToUnicode("Hello " + name + ", glad to see you! " + ":wave:\n" +
+                "Time to feed the cats " + ":cat2:");
         log.info("/start entered [{}]", name);
 
         sendMessage(chatId, answer);
@@ -510,22 +507,29 @@ public class TelegramBot extends TelegramLongPollingBot {
         if (user != null) {
             List<Cat> catList = catRepository.findByUserChatId(chatId);
 
-            answer = new StringBuilder("Your data:\n" +
-                    "First name: " + user.getFirstName() + "\n" +
-                    "Last name: " + user.getLastName() + "\n" +
-                    "Registration time: " + user.getRegisteredAt().toString());
+            answer = new StringBuilder(EmojiParser.parseToUnicode(":grinning: "))
+                    .append("First name: ")
+                    .append(user.getFirstName())
+                    .append("\n")
+                    .append("Last name: ")
+                    .append(user.getLastName())
+                    .append("\n")
+                    .append("Registration time: ")
+                    .append(user.getRegisteredAt().toString())
+                    .append("\n\n");
 
             if (!catList.isEmpty()) {
-                answer.append("\nKitties:\n");
-
                 for (Cat cat : catList) {
-                    answer.append("Name: ")
+                    answer.append(EmojiParser.parseToUnicode(":cat2: "))
+                            .append("Name: ")
                             .append(cat.getName())
-                            .append("; Grams per day: ")
+                            .append("\nGrams per day: ")
                             .append(cat.getGramsPerDay())
-                            .append("; Feed per day: ")
+                            .append("\nToday feeds: ")
+                            .append(cat.getCurrentFeed())
+                            .append("/")
                             .append(cat.getFeedPerDay())
-                            .append("\n");
+                            .append("\n\n");
                 }
             }
 
@@ -533,8 +537,8 @@ public class TelegramBot extends TelegramLongPollingBot {
             log.info("show user data by: " + user);
 
         } else {
-            answer = new StringBuilder("Dude, you're not registered!\n" +
-                    "Enter /start to register.");
+            answer = new StringBuilder("Dude, you're not registered!\n")
+                    .append("Enter /start to register.");
 
         }
         sendMessage(chatId, answer.toString());
@@ -636,5 +640,12 @@ public class TelegramBot extends TelegramLongPollingBot {
         } catch (TelegramApiException exception) {
             log.error("Error occurred: " + exception.getMessage());
         }
+    }
+
+    @Scheduled(cron = "* * 0 * * *", zone = "Europe/Moscow")
+    private void restoreCurrentFeed() {
+        var cats = catRepository.findAll();
+        for (Cat cat : cats) cat.setCurrentFeed(0);
+        log.info("restore current feed");
     }
 }
