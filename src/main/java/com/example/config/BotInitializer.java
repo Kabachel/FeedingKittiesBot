@@ -1,6 +1,6 @@
-package com.config;
+package com.example.config;
 
-import com.service.TelegramBot;
+import com.example.service.TelegramBot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;

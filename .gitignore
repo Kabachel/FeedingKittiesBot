@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+feeding-kitties-bot.sh
+scripts/
