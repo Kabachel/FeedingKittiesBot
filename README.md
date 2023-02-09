@@ -21,3 +21,4 @@
 
 - [ ] Add support DB for docker
 - [ ] Add funny images to menu
+- [ ] Add [heroku](https://www.heroku.com/) support
