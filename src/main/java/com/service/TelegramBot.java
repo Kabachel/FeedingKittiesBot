@@ -202,7 +202,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 try {
                     execute(messageText);
-//                    log.info("callbackButton - \"choose kitty\" - [{}]", update.getMessage().getChatId());
+                    log.info("callbackButton - \"choose kitty\" - [{}]", update.getMessage().getChatId());
                     chooseCatAction(chatId);
                 } catch (TelegramApiException e) {
                     log.error("Error occurred: " + e.getMessage());
@@ -235,7 +235,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
                 try {
                     execute(messageText);
-//                    log.info("callbackButton - \"FEED_BUTTON\" - [{}]", update.getMessage().getChatId());
+                    log.info("callbackButton - \"FEED_BUTTON\" - [{}]", update.getMessage().getChatId());
                     chooseCat(chatId, user);
                 } catch (TelegramApiException e) {
                     log.error("Error occurred: " + e.getMessage());
@@ -261,7 +261,7 @@ public class TelegramBot extends TelegramLongPollingBot {
                 }
 
             } else if (callbackData.equals(BACK_BUTTON)) {
-//                log.info("callbackButton - \"BACK_BUTTON\" - [{}]", update.getMessage().getChatId());
+                log.info("callbackButton - \"BACK_BUTTON\" - [{}]", update.getMessage().getChatId());
                 chooseCat(chatId, userRepository.findById(chatId).get());
             }
         }
