@@ -25,4 +25,4 @@
 - [ ] Add [heroku](https://www.heroku.com/) support
 
 ## DatabaseSchema
-![database_schema](https://github.com/Kabachel/FeedingKittiesBot/edit/develop/docs/media/database_schema.png)
+![database_schema](https://raw.githubusercontent.com/Kabachel/FeedingKittiesBot/develop/docs/media/database_schema.png)
