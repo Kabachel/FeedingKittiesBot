@@ -5,6 +5,7 @@
 * [Introduction](#Introduction)
 * [Goals](#Goals)
 * [TODO](#TODO)
+* [Database Schema](#DatabaseSchema)
 
 ## Introduction
 
@@ -22,3 +23,6 @@
 - [ ] Add support DB for docker
 - [ ] Add funny images to menu
 - [ ] Add [heroku](https://www.heroku.com/) support
+
+## Database Schema
+![https://github.com/Kabachel/FeedingKittiesBot/edit/develop/docs/media/database_schema.png]
