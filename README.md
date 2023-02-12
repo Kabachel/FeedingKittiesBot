@@ -24,5 +24,5 @@
 - [ ] Add funny images to menu
 - [ ] Add [heroku](https://www.heroku.com/) support
 
-## Database Schema
-![https://github.com/Kabachel/FeedingKittiesBot/edit/develop/docs/media/database_schema.png]
+## DatabaseSchema
+![database_schema](https://github.com/Kabachel/FeedingKittiesBot/edit/develop/docs/media/database_schema.png)
